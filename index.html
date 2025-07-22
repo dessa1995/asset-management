@@ -236,7 +236,7 @@
             border-radius: 6px;
             padding: 10px;
             position: absolute;
-            z-index: 1;
+            z-index: 10;
             bottom: 125%;
             left: 50%;
             margin-left: -125px;
@@ -399,6 +399,13 @@
             padding-top: 10px;
             border-top: 1px dashed var(--border-color);
         }
+        .advice-content ul {
+            list-style-position: inside;
+            padding-left: 10px;
+        }
+         .advice-content li {
+            margin-bottom: 10px;
+        }
         .chart-container {
             position: relative;
             height: 40vh;
@@ -434,7 +441,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* PDF 출력용 스타일 */
+        /* PDF 출력용 스타일 (개선) */
         .pdf-render-area {
             position: absolute;
             left: -9999px;
@@ -447,26 +454,39 @@
             color: var(--dark-text-color);
             page-break-inside: avoid;
         }
-        .pdf-section h1, .pdf-section h2, .pdf-section h3 {
+        .pdf-section h1 {
+            font-size: 24px;
             color: var(--primary-color);
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-top: 20px;
-            margin-bottom: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            border: none;
+        }
+        .pdf-section h3 {
+            font-size: 18px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+            margin-top: 25px;
+            margin-bottom: 20px;
         }
         .pdf-section p {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            font-size: 14px;
         }
         .pdf-section .label {
             font-weight: 700;
             color: var(--dark-text-color);
+            display: block;
+            margin-bottom: 5px;
         }
         .pdf-section .value {
             white-space: pre-wrap;
             word-wrap: break-word;
-            padding: 10px;
+            padding: 12px;
             background: var(--light-bg-color);
             border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.7;
         }
         .pdf-section .pdf-chart-img {
             max-width: 100%;
@@ -766,16 +786,34 @@
                                 <button type="button" class="btn btn-tip" data-stage="${stage.id}">팁 보기</button>
                             </div>
                             <div class="form-group">
-                                <label for="${stage.id}-goal">경제 목표</label>
+                                <label for="${stage.id}-goal">
+                                    경제 목표
+                                    <div class="tooltip">
+                                        <button type="button" class="btn-help">?</button>
+                                        <span class="tooltip-text">${examples.goal}</span>
+                                    </div>
+                                </label>
                                 <textarea id="${stage.id}-goal" name="${stage.id}-goal" rows="3" placeholder="구체적인 경제적 목표를 작성해주세요." required></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="${stage.id}-funds">필요 자금 (원)</label>
+                                <label for="${stage.id}-funds">
+                                    필요 자금 (원)
+                                    <div class="tooltip">
+                                        <button type="button" class="btn-help">?</button>
+                                        <span class="tooltip-text">${examples.funds}</span>
+                                    </div>
+                                </label>
                                 <input type="number" id="${stage.id}-funds" name="${stage.id}-funds" placeholder="숫자만 입력하세요 (예: 50000000)" required>
                                 <div class="korean-won" id="${stage.id}-funds-kor"></div>
                             </div>
                             <div class="form-group">
-                                <label for="${stage.id}-portfolio">자산 포트폴리오</label>
+                                <label for="${stage.id}-portfolio">
+                                    자산 포트폴리오
+                                    <div class="tooltip">
+                                        <button type="button" class="btn-help">?</button>
+                                        <span class="tooltip-text">${examples.portfolio}</span>
+                                    </div>
+                                </label>
                                 <textarea id="${stage.id}-portfolio" name="${stage.id}-portfolio" rows="3" placeholder="어떤 자산에 어떻게 투자할지 계획을 작성해주세요." required></textarea>
                             </div>
                         </div>
@@ -820,18 +858,77 @@
                 }
             }
 
+            /**
+             * 전체 평균 등급에 따른 종합 조언 생성 함수 (신규)
+             * @param {string[]} grades - 생애주기별 등급 배열
+             * @returns {string} - HTML 형식의 종합 조언
+             */
+            function getOverallAdvice(grades) {
+                const scoreMap = { 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
+                const totalScore = grades.reduce((sum, grade) => sum + scoreMap[grade], 0);
+                const averageScore = totalScore / grades.length;
+
+                if (averageScore >= 3.5) { // 평균 A 이상
+                    return `
+                        <h3>종합 조언 (매우 우수)</h3>
+                        <p><b>전반적으로 매우 체계적이고 실현 가능성이 높은 계획입니다!</b> 각 생애주기에 대한 깊은 고민이 엿보이며, 구체적인 목표와 전략이 잘 수립되어 있습니다.</p>
+                        <ul>
+                            <li><b>지속성 유지:</b> 현재의 계획을 꾸준히 실천하고 정기적으로 진행 상황을 점검하는 것이 중요합니다.</li>
+                            <li><b>유연한 대처:</b> 인생의 예기치 못한 변화(결혼, 출산, 이직 등)에 따라 계획을 유연하게 수정할 준비를 하세요.</li>
+                            <li><b>심화 학습:</b> 현재의 지식에 만족하지 않고, 새로운 금융 상품이나 투자 트렌드에 대해 지속적으로 학습하여 계획을 더욱 발전시켜 나가시길 바랍니다.</li>
+                        </ul>
+                        <p><b>훌륭한 출발입니다! 이 계획이 당신의 풍요로운 미래를 위한 튼튼한 초석이 될 것입니다.</b></p>
+                    `;
+                } else if (averageScore >= 2.5) { // 평균 B 이상
+                    return `
+                        <h3>종합 조언 (우수)</h3>
+                        <p><b>전체적으로 좋은 방향성을 가진 훌륭한 계획입니다.</b> 자산 관리에 대한 기본적인 이해도가 높으며, 미래를 위한 좋은 토대를 마련하셨습니다.</p>
+                        <ul>
+                            <li><b>목표 구체화:</b> '돈 많이 벌기'와 같은 추상적인 목표보다는 '35세까지 1억 모으기'처럼 SMART(구체적, 측정가능, 달성가능, 관련성, 시간기반) 원칙에 따라 목표를 더욱 명확하게 설정해보세요.</li>
+                            <li><b>위험 관리:</b> 일부 기간의 포트폴리오가 한쪽에 치우쳐 있을 수 있습니다. 분산 투자의 원칙을 다시 한번 점검하고, 예상치 못한 위험에 대비한 비상금의 중요성을 잊지 마세요.</li>
+                            <li><b>실행 계획 점검:</b> 각 목표를 달성하기 위한 월별 저축액이나 투자 계획이 현실적인지 다시 한번 검토해보는 것이 좋습니다.</li>
+                        </ul>
+                        <p><b>몇 가지만 보완한다면 더욱 완벽한 계획이 될 것입니다. 지금처럼 꾸준히 나아가세요!</b></p>
+                    `;
+                } else if (averageScore >= 1.5) { // 평균 C 이상
+                    return `
+                        <h3>종합 조언 (개선 필요)</h3>
+                        <p><b>미래를 위한 계획을 시작했다는 것만으로도 큰 의미가 있습니다.</b> 다만, 현재 계획은 다소 추상적이거나 구체성이 부족한 부분이 보입니다.</p>
+                        <ul>
+                            <li><b>기초부터 탄탄히:</b> 각 생애주기별 '팁 보기' 기능을 활용하여 해당 시기에 꼭 필요한 재무 활동이 무엇인지 다시 한번 확인해보세요.</li>
+                            <li><b>숫자로 계획하기:</b> '필요 자금'을 단순히 큰 금액으로 설정하기보다, 왜 그 금액이 필요한지(주택 구매, 자녀 교육 등) 구체적인 근거를 바탕으로 산출하는 연습이 필요합니다.</li>
+                            <li><b>현실성 점검:</b> 목표를 달성하기 위한 과정이 현실적으로 가능한지, 나의 예상 소득과 지출을 고려하여 계획을 수정해보세요.</li>
+                        </ul>
+                        <p><b>이번 계획을 바탕으로 각 항목을 조금 더 구체화한다면 훨씬 더 강력한 미래 설계도가 될 것입니다.</b></p>
+                    `;
+                } else { // 평균 D 수준
+                    return `
+                        <h3>종합 조언 (상당한 노력 필요)</h3>
+                        <p><b>자산 관리 계획의 첫걸음을 뗀 것을 응원합니다.</b> 아직은 계획의 전체적인 틀을 잡는 데 어려움이 있는 것으로 보입니다.</p>
+                        <ul>
+                            <li><b>정보 탐색의 중요성:</b> 각 생애주기별 '팁 보기' 내용을 꼼꼼히 읽어보는 것부터 시작해보세요. 어떤 준비가 필요한지 아는 것이 계획의 첫 단계입니다.</li>
+                            <li><b>작은 목표부터 시작:</b> 처음부터 거창한 계획을 세우기보다, '유소년기에 용돈 10% 저축하기'와 같이 작고 실천 가능한 목표부터 세우고 달성하는 경험을 쌓는 것이 중요합니다.</li>
+                            <li><b>빈칸 채우기:</b> 계획의 완성도를 높이기 위해, 비어있는 모든 항목에 대해 고민하고 채워 넣는 노력이 필요합니다.</li>
+                        </ul>
+                        <p><b>누구나 처음은 어렵습니다. 이 프로그램을 여러 번 활용하여 점차 발전하는 자신의 계획을 확인해보세요!</b></p>
+                    `;
+                }
+            }
+
+
             function generateResults() {
                 const gradesContainer = document.getElementById('grades-container');
                 const adviceContainer = document.getElementById('advice-container');
                 gradesContainer.innerHTML = '';
                 adviceContainer.innerHTML = '';
                 
-                let totalAdvice = '<h3>종합 조언</h3><ul>';
+                const grades = [];
 
                 stages.forEach(stage => {
                     const data = planData[stage.id];
                     const grade = evaluatePlan(data);
                     data.grade = grade;
+                    grades.push(grade); // 평균 계산을 위해 등급 저장
 
                     gradesContainer.innerHTML += `
                         <div class="text-center">
@@ -847,15 +944,15 @@
                             <div class="advice-content">${stageAdvice}</div>
                         </div>
                     `;
-                    totalAdvice += `<li><b>${stage.name}:</b> ${stageAdvice}</li>`;
                 });
                 
-                totalAdvice += '</ul><p class="mt-3"><b>결론적으로, 장기적인 관점을 갖고 꾸준히 계획을 실천하고 점검하는 것이 가장 중요합니다. 이 계획이 당신의 성공적인 미래를 위한 훌륭한 첫걸음이 되기를 바랍니다.</b></p>';
+                // 새로운 종합 조언 생성
+                const overallAdvice = getOverallAdvice(grades);
                 
                 adviceContainer.innerHTML += `
                     <div class="advice-section mt-3">
                         <div class="advice-title">전체 생애주기 종합 조언</div>
-                        <div class="advice-content">${totalAdvice}</div>
+                        <div class="advice-content">${overallAdvice}</div>
                     </div>
                 `;
 
@@ -873,33 +970,26 @@
             function renderChart() {
                 const ctx = document.getElementById('asset-chart').getContext('2d');
                 const labels = stages.map(s => s.name);
-                const data = stages.map(s => planData[s.id].funds > 0 ? planData[s.id].funds : 0);
-                const maxVal = Math.max(...data);
-
+                // 로그 스케일에서 0은 유효하지 않으므로, 0인 경우 그래프 하단에 표시될 작은 값(예: 1)으로 매핑합니다.
+                const data = stages.map(s => planData[s.id].funds > 0 ? planData[s.id].funds : 1);
+                
                 if(assetChart) {
                     assetChart.destroy();
                 }
 
                 assetChart = new Chart(ctx, {
-                    type: 'bar',
+                    type: 'line', // 그래프 타입을 'line'으로 변경
                     data: {
                         labels: labels,
                         datasets: [{
                             label: '필요 자금 (원)',
                             data: data,
-                            backgroundColor: [
-                                'rgba(74, 144, 226, 0.6)',
-                                'rgba(80, 227, 194, 0.6)',
-                                'rgba(245, 166, 35, 0.6)',
-                                'rgba(208, 2, 27, 0.6)'
-                            ],
-                            borderColor: [
-                                'rgba(74, 144, 226, 1)',
-                                'rgba(80, 227, 194, 1)',
-                                'rgba(245, 166, 35, 1)',
-                                'rgba(208, 2, 27, 1)'
-                            ],
-                            borderWidth: 1
+                            fill: true, // 선 아래 영역 채우기
+                            backgroundColor: 'rgba(74, 144, 226, 0.2)', // 영역 색상
+                            borderColor: 'rgba(74, 144, 226, 1)', // 선 색상
+                            pointBackgroundColor: 'rgba(74, 144, 226, 1)', // 포인트 색상
+                            pointRadius: 5, // 포인트 크기
+                            tension: 0.1 // 선의 곡률
                         }]
                     },
                     options: {
@@ -914,8 +1004,10 @@
                                     label: function(context) {
                                         let label = context.dataset.label || '';
                                         if (label) label += ': ';
-                                        if (context.parsed.y !== null) {
-                                            label += new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(context.parsed.y);
+                                        // 툴팁에는 원래 값을 표시
+                                        const originalValue = planData[stages[context.dataIndex].id].funds;
+                                        if (originalValue !== null) {
+                                            label += new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(originalValue);
                                         }
                                         return label;
                                     }
@@ -924,18 +1016,12 @@
                         },
                         scales: {
                             y: {
-                                type: 'linear',
-                                beginAtZero: true,
-                                max: maxVal > 0 ? maxVal * 1.1 : 10000, // 최대값에 10% 여유
+                                type: 'logarithmic', // 로그 스케일로 변경
+                                min: 1000, // 0에 가까운 값들이 잘 보이도록 최소값을 1000원 정도로 설정
                                 ticks: {
                                     callback: function(value, index, values) {
-                                        if (value >= 100000000) {
-                                            return (value / 100000000) + '억';
-                                        }
-                                        if (value >= 10000) {
-                                            return (value / 10000) + '만';
-                                        }
-                                        return value;
+                                        // numberToKorean 함수를 사용하여 주요 단위를 표시
+                                        return numberToKorean(value);
                                     }
                                 }
                             }
